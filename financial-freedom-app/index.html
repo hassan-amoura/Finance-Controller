@@ -78,12 +78,12 @@ let found=line.match(/\$\s*([\d,]+(?:\.\d{1,2})?)/);if(!found)continue;let amoun
 let label=line.split(/\s*:\s*/)[0].replace(/^#+\s*/,"").trim();if(!label||label.length>90||/^(?:updated|interest rate|apr|minimum checking balance|jeep interest|forecast|date|start|expected|estimated monthly|quarterly bonus|last projectworks|total)/i.test(label)){warnings.push("Needs review: "+line);continue}
 let l=(label+" "+section).toLowerCase(),kind="",period=notePeriod(line),sectionBills=/\bbills\b/.test(section),sectionSpending=/\bspending\b/.test(section);
 if(/(?:annual base salary|base salary|gross salary|interest rate|apr|interest|salary.*year)/i.test(line)&&!/(?:take.home|net pay)/i.test(line)){warnings.push("Not imported as spendable income: "+line);continue}
-if(/(?:checking|savings account|hysa|bank balance|loan balance|credit card balance|auto loan|cash balance)/i.test(label)&&!/(?:target|goal|minimum|payment)/i.test(label)){kind=/loan|credit card|debt/.test(label.toLowerCase())?"debt":"cash"}
+if(/(?:checking|savings(?: account)?|hysa|bank balance|loan balance|credit card balance|auto loan|cash balance)/i.test(label)&&!/(?:target|goal|minimum|payment)/i.test(label)){kind=/loan|credit card|debt/.test(label.toLowerCase())?"debt":"cash"}
 else if(/(?:goal|target|emergency fund)/i.test(label)&&!/(?:monthly|per month)/i.test(label)){kind="goal"}
 else if(/(?:income|take.home|paycheck|side gig|freelance|wages|net pay|sauce labs)/i.test(l)&&!/(?:one.time|final|possible|payout|bonus|gross)/i.test(line)){kind="income";incomeSeen=true}
 else if(sectionBills||sectionSpending||/(?:rent|grocer|gym|utilit|electric|spotify|streaming|gas|insurance|transport|food|dining|internet|phone|subscription|car payment|jeep payment|coffee|entertainment|misc)/i.test(label)){kind="budget"}
 else {warnings.push("Needs review: "+line);continue}
-if(kind==="budget"&&period==="monthly"&&/weekly/i.test(section))period="weekly";
+if(kind==="budget"&&/weekly spending|weekly budget/i.test(section)){warnings.push("Weekly summary skipped to avoid double counting: "+line);continue}
 if(kind==="income"&&period==="monthly"&&/\b(?:twice a month|twice per month)\b/i.test(line))period="twice";
 let key=kind+":"+label.toLowerCase();if(seen.has(key))continue;seen.add(key);
 rows.push({kind,label,amount,period,selected:true,source:line})}
